@@ -18,7 +18,8 @@ class FlyweightAllocationTest extends FunSuite with ShouldMatchers {
     val sampler = allocationSampler
     
     sampler.enabled = true
-    
+    new String("allocate once to ensure sampler is working")
+
     var i = 0
     while(i < 6) {
       fly.intField
@@ -28,7 +29,7 @@ class FlyweightAllocationTest extends FunSuite with ShouldMatchers {
 
     sampler.enabled = false
     
-    sampler.getCount should be (0)
+    sampler.getCount should be (1)
   }
   
   def allocationSampler = {
