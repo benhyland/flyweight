@@ -4,8 +4,8 @@ import org.scalatest.FunSuite
 import org.scalatest.matchers.ShouldMatchers
 import com.google.monitoring.runtime.instrumentation.AllocationRecorder
 import com.google.monitoring.runtime.instrumentation.Sampler
-
 import Fixtures._
+import java.util.concurrent.atomic.AtomicBoolean
 
 class FlyweightAllocationTest extends FunSuite with ShouldMatchers {
 
@@ -15,13 +15,16 @@ class FlyweightAllocationTest extends FunSuite with ShouldMatchers {
     
     val fly = singleIntFlyweight(bytes)
     
+    fly.moveNext // force initial classloading and allocations
+    
     val sampler = allocationSampler
     
     sampler.enabled = true
+    
     new String("allocate once to ensure sampler is working")
 
     var i = 0
-    while(i < 6) {
+    while(i < 5) {
       fly.intField
       fly.moveNext
       i += 1
@@ -40,14 +43,11 @@ class FlyweightAllocationTest extends FunSuite with ShouldMatchers {
 }
 
 class CountingSampler(var enabled: Boolean = false) extends Sampler {
-  var _count = 0
+  private var _count = 0
   def getCount = _count
   override def sampleAllocation(count: Int, desc: String, obj: AnyRef, size: Long) {
     if(enabled) {
-	    _count += 1
-	    print("******* saw allocation of ")
-	    print(desc)
-	    println(" *******")
+      _count += 1
     }
   }
 }
